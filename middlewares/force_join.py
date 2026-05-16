@@ -24,11 +24,16 @@ async def check_membership(bot: Bot, user_id: int) -> bool:
     """Returns True if user is a member of the required channel."""
     try:
         member = await bot.get_chat_member(settings.REQUIRED_CHANNEL, user_id)
-        return member.status not in ("left", "kicked", "banned")
-    except TelegramBadRequest:
+        status = member.status
+        logger.info(f"✅ Membership check for {user_id}: status={status}")
+        return status not in ("left", "kicked", "banned")
+    except TelegramBadRequest as e:
+        logger.error(f"❌ Membership check failed for {user_id}: {e}")
+        logger.error(f"   Channel ID: {settings.REQUIRED_CHANNEL}")
+        logger.error(f"   Error details: {e.message if hasattr(e, 'message') else str(e)}")
         return False
     except Exception as e:
-        logger.warning(f"Membership check failed for {user_id}: {e}")
+        logger.error(f"❌ Unexpected error checking membership for {user_id}: {type(e).__name__}: {e}")
         return False  # Fail safe: block
 
 
@@ -79,5 +84,3 @@ class ForceJoinMiddleware(BaseMiddleware):
                 await event.message.edit_text(msg, reply_markup=kb)
                 await event.answer("⚠️ Please join CampusBuzz first!", show_alert=True)
             return  # Block handler
-
-        return await handler(event, data)
