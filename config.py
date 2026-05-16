@@ -14,16 +14,13 @@ class Settings(BaseSettings):
     BOT_USERNAME: str = "CampusBuzzKEBot"
 
     # ── Force Join ───────────────────────────────────────────────────────────
-    REQUIRED_CHANNEL: str = "@CampusBuzz"
+    REQUIRED_CHANNEL: str = "@CampusBuzz"          # username or id
     REQUIRED_CHANNEL_LINK: str = "https://t.me/CampusBuzz"
     REQUIRED_CHANNEL_NAME: str = "CampusBuzz"
 
     # ── Database ─────────────────────────────────────────────────────────────
     DATABASE_URL: str = "postgresql+asyncpg://campusbuzz:password@localhost/campusbuzz"
-    # FIX: Optional so an empty or missing REDIS_URL in .env
-    #      doesn't fall back to the localhost default.
-    #      Set to a real URL in production, leave unset for local dev.
-    REDIS_URL: Optional[str] = None
+    REDIS_URL: str = "redis://localhost:6379/0"
 
     # ── Webhook (leave empty for polling) ────────────────────────────────────
     WEBHOOK_URL: Optional[str] = None
@@ -34,8 +31,8 @@ class Settings(BaseSettings):
     GROUPS_PER_PAGE: int = 5
 
     # ── Rate Limiting ────────────────────────────────────────────────────────
-    RATE_LIMIT_MESSAGES: int = 5
-    RATE_LIMIT_PERIOD: int = 10
+    RATE_LIMIT_MESSAGES: int = 5       # max messages
+    RATE_LIMIT_PERIOD: int = 10        # per N seconds
     MAX_SPAM_STRIKES: int = 3
 
     # ── Gamification ─────────────────────────────────────────────────────────

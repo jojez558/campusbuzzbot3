@@ -38,21 +38,19 @@ logging.basicConfig(
 logger = logging.getLogger("CampusBuzz")
 
 
-def build_storage():
-    """
-    Use RedisStorage in production (when REDIS_URL is configured).
-    Fall back to MemoryStorage for local development so the bot runs
-    without needing a Redis server installed on Windows.
-    NOTE: MemoryStorage is in-process only — FSM state is lost on restart.
-    """
-    if getattr(settings, "REDIS_URL", None):
+async def build_storage():
+    redis_url = getattr(settings, "REDIS_URL", None) or ""
+    if redis_url.strip():
         try:
             from aiogram.fsm.storage.redis import RedisStorage
-            storage = RedisStorage.from_url(settings.REDIS_URL)
-            logger.info("💾 Storage: RedisStorage (%s)", settings.REDIS_URL)
-            return storage
+            import redis.asyncio as aioredis
+            client = aioredis.from_url(redis_url, socket_connect_timeout=3)
+            await client.ping()
+            await client.aclose()
+            logger.info("💾 Storage: RedisStorage (%s)", redis_url)
+            return RedisStorage.from_url(redis_url)
         except Exception as e:
-            logger.warning("⚠️  Redis unavailable (%s) — falling back to MemoryStorage", e)
+            logger.warning("⚠️  Redis not reachable (%s) — falling back to MemoryStorage", e)
 
     logger.info("💾 Storage: MemoryStorage (local dev mode)")
     return MemoryStorage()
@@ -111,7 +109,7 @@ async def main():
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
 
-    dp = Dispatcher(storage=build_storage())
+    dp = Dispatcher(storage=await build_storage())
 
     # Register middlewares (order matters)
     dp.message.middleware(RateLimitMiddleware(rate=1, period=1))
@@ -145,7 +143,6 @@ async def main():
     dp.shutdown.register(on_shutdown)
 
     if getattr(settings, "WEBHOOK_URL", None):
-        # Webhook mode for production
         from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
         from aiohttp import web
 
@@ -160,7 +157,6 @@ async def main():
         )
         web.run_app(app, host="0.0.0.0", port=settings.PORT)
     else:
-        # Long-polling mode for development
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
