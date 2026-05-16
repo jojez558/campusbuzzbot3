@@ -104,8 +104,39 @@ async def on_shutdown(bot: Bot):
 
 
 async def main():
+    # ── Token diagnostics ────────────────────────────────────────────────────
+    token = settings.BOT_TOKEN
+    if not token:
+        logger.critical(
+            "❌ BOT_TOKEN is not set or is empty. "
+            "Make sure the BOT_TOKEN environment variable is configured in Railway."
+        )
+        return
+    if ":" not in token:
+        logger.critical(
+            "❌ BOT_TOKEN looks malformed (no ':' separator found). "
+            "A valid token looks like '123456789:ABCdef...'. "
+            "Current value starts with: %r",
+            token[:10] + "..." if len(token) > 10 else token,
+        )
+        return
+    token_id, _, token_secret = token.partition(":")
+    if not token_id.isdigit():
+        logger.critical(
+            "❌ BOT_TOKEN prefix (before ':') is not a numeric bot ID. "
+            "Current prefix: %r",
+            token_id,
+        )
+        return
+    logger.info(
+        "✅ BOT_TOKEN present — bot ID prefix: %s, secret length: %d",
+        token_id,
+        len(token_secret),
+    )
+    # ── End token diagnostics ────────────────────────────────────────────────
+
     bot = Bot(
-        token=settings.BOT_TOKEN,
+        token=token,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
 
