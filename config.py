@@ -8,13 +8,13 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # ── Bot Credentials ──────────────────────────────────────────────────────
-    BOT_TOKEN: str
-    ADMIN_ID: int
+    BOT_TOKEN: str                     # required: must be set in .env / Render
+    ADMIN_ID: int                      # required: must be set in .env / Render
     ADMIN_USERNAME: str = "DevMwaura"
     BOT_USERNAME: str = "CampusBuzzKEBot"
 
     # ── Force Join ───────────────────────────────────────────────────────────
-    REQUIRED_CHANNEL: str = "@CampusBuzz"          # username or id
+    REQUIRED_CHANNEL: str = "@CampusBuzz"          
     REQUIRED_CHANNEL_LINK: str = "https://t.me/CampusBuzz"
     REQUIRED_CHANNEL_NAME: str = "CampusBuzz"
 
@@ -51,4 +51,5 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
 
 
+# Instantiate settings
 settings = Settings()
