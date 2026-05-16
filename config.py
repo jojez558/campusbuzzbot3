@@ -8,7 +8,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # ── Bot Credentials ──────────────────────────────────────────────────────
-    BOT_TOKEN: str                     # required: must be set in .env / Render
+    BOT_TOKEN: Optional[str] = None    # temporarily optional for diagnostics
     ADMIN_ID: int                      # required: must be set in .env / Render
     ADMIN_USERNAME: str = "DevMwaura"
     BOT_USERNAME: str = "CampusBuzzKEBot"
