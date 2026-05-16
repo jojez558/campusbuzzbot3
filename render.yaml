@@ -1,0 +1,29 @@
+services:
+  - type: worker
+    name: campusbuzz-bot
+    runtime: python
+    pythonVersion: "3.14.3"
+    buildCommand: pip install --upgrade pip setuptools wheel && pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_ID
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: campusbuzz-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: campusbuzz-redis
+          property: connectionString
+
+databases:
+  - name: campusbuzz-db
+    plan: free
+
+  - name: campusbuzz-redis
+    type: redis
+    plan: free

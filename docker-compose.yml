@@ -1,0 +1,94 @@
+version: "3.9"
+
+# ═══════════════════════════════════════════════════════════
+#  CampusBuzz Kenya — Full Stack Docker Compose
+#  Runs: Bot + PostgreSQL + Redis
+# ═══════════════════════════════════════════════════════════
+
+services:
+
+  # ── Telegram Bot ──────────────────────────────────────────
+  bot:
+    build: .
+    container_name: campusbuzz_bot
+    restart: always
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://campusbuzz:${POSTGRES_PASSWORD:-campusbuzz123}@db:5432/campusbuzz
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - campusbuzz_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ── PostgreSQL ────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: campusbuzz_db
+    restart: always
+    environment:
+      POSTGRES_DB: campusbuzz
+      POSTGRES_USER: campusbuzz
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-campusbuzz123}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - campusbuzz_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campusbuzz -d campusbuzz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ─────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: campusbuzz_redis
+    restart: always
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - campusbuzz_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── Adminer (DB GUI — remove in prod) ─────────────────────
+  adminer:
+    image: adminer:latest
+    container_name: campusbuzz_adminer
+    restart: always
+    ports:
+      - "8088:8080"
+    depends_on:
+      - db
+    networks:
+      - campusbuzz_net
+    profiles:
+      - dev   # only starts with: docker compose --profile dev up
+
+volumes:
+  pg_data:
+  redis_data:
+
+networks:
+  campusbuzz_net:
+    driver: bridge

@@ -1,0 +1,34 @@
+# CampusBuzz Kenya — Python Dependencies
+# Tested with Python 3.14.3
+# Note: Python 3.14 is new — some C extensions compile from source.
+# Build tools (gcc, libpq-dev, etc.) are installed in Dockerfile.
+
+# Core bot framework
+aiogram==3.13.1
+aiohttp>=3.10.10
+
+# Database
+sqlalchemy==2.0.36
+asyncpg>=0.30.0           # C extension — compiles from source on 3.14
+alembic==1.13.3
+
+# Caching / FSM storage
+redis==5.2.0
+
+# Config management
+pydantic-settings==2.5.2  # must stay <2.6 to match pydantic<2.10
+pydantic==2.9.2           # aiogram 3.13.1 requires pydantic>=2.4.1,<2.10
+python-dotenv==1.0.1
+
+# Utilities
+httpx==0.27.2
+apscheduler==3.10.4
+pillow>=11.0.0            # C extension — compiles from source on 3.14
+qrcode==8.0
+python-dateutil==2.9.0
+
+# Logging
+structlog==24.4.0
+
+# Production server (webhook mode)
+gunicorn==23.0.0
