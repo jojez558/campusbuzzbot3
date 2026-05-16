@@ -45,3 +45,15 @@ htmlcov/
 
 # Alembic
 alembic/versions/*.pyc
+
+# Virtual environments
+venv312/
+
+# Environment files
+.env
+.env.local
+
+# Python cache
+__pycache__/
+*.pyc
+
